@@ -1,0 +1,352 @@
+version: '3.8'
+
+services:
+  # Production Kafka Cluster
+  zookeeper-1:
+    image: confluentinc/cp-zookeeper:7.4.0
+    hostname: zookeeper-1
+    container_name: zookeeper-1-prod
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_SERVER_ID: 1
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_SERVERS: zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888
+    volumes:
+      - zk1-data:/var/lib/zookeeper/data
+      - zk1-logs:/var/lib/zookeeper/log
+
+  zookeeper-2:
+    image: confluentinc/cp-zookeeper:7.4.0
+    hostname: zookeeper-2
+    container_name: zookeeper-2-prod
+    ports:
+      - "2182:2181"
+    environment:
+      ZOOKEEPER_SERVER_ID: 2
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_SERVERS: zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888
+    volumes:
+      - zk2-data:/var/lib/zookeeper/data
+      - zk2-logs:/var/lib/zookeeper/log
+
+  zookeeper-3:
+    image: confluentinc/cp-zookeeper:7.4.0
+    hostname: zookeeper-3
+    container_name: zookeeper-3-prod
+    ports:
+      - "2183:2181"
+    environment:
+      ZOOKEEPER_SERVER_ID: 3
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+      ZOOKEEPER_INIT_LIMIT: 5
+      ZOOKEEPER_SYNC_LIMIT: 2
+      ZOOKEEPER_SERVERS: zookeeper-1:2888:3888;zookeeper-2:2888:3888;zookeeper-3:2888:3888
+    volumes:
+      - zk3-data:/var/lib/zookeeper/data
+      - zk3-logs:/var/lib/zookeeper/log
+
+  # Kafka Brokers
+  kafka-1:
+    image: confluentinc/cp-kafka:7.4.0
+    hostname: kafka-1
+    container_name: kafka-1-prod
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+    ports:
+      - "9092:9092"
+      - "19092:19092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-1:29092,PLAINTEXT_HOST://localhost:9092
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_JMX_PORT: 19092
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+    volumes:
+      - kafka1-data:/var/lib/kafka/data
+
+  kafka-2:
+    image: confluentinc/cp-kafka:7.4.0
+    hostname: kafka-2
+    container_name: kafka-2-prod
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+    ports:
+      - "9093:9093"
+      - "19093:19093"
+    environment:
+      KAFKA_BROKER_ID: 2
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-2:29093,PLAINTEXT_HOST://localhost:9093
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_JMX_PORT: 19093
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+    volumes:
+      - kafka2-data:/var/lib/kafka/data
+
+  kafka-3:
+    image: confluentinc/cp-kafka:7.4.0
+    hostname: kafka-3
+    container_name: kafka-3-prod
+    depends_on:
+      - zookeeper-1
+      - zookeeper-2
+      - zookeeper-3
+    ports:
+      - "9094:9094"
+      - "19094:19094"
+    environment:
+      KAFKA_BROKER_ID: 3
+      KAFKA_ZOOKEEPER_CONNECT: 'zookeeper-1:2181,zookeeper-2:2181,zookeeper-3:2181'
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka-3:29094,PLAINTEXT_HOST://localhost:9094
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 3
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 2
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 3
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_JMX_PORT: 19094
+      KAFKA_JMX_HOSTNAME: localhost
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: 'false'
+      KAFKA_DEFAULT_REPLICATION_FACTOR: 3
+      KAFKA_MIN_INSYNC_REPLICAS: 2
+    volumes:
+      - kafka3-data:/var/lib/kafka/data
+
+  # Production Flink Cluster
+  flink-jobmanager:
+    image: flink:1.17.1-scala_2.12
+    hostname: flink-jobmanager
+    container_name: flink-jobmanager-prod
+    ports:
+      - "8081:8081"
+    command: jobmanager
+    environment:
+      - FLINK_PROPERTIES=jobmanager.rpc.address: flink-jobmanager\nparallelism.default: 6\nstate.backend: rocksdb\nstate.backend.incremental: true\nstate.checkpoints.dir: file:///tmp/flink-checkpoints\nstate.savepoints.dir: file:///tmp/flink-savepoints\nexecution.checkpointing.interval: 30s\nexecution.checkpointing.timeout: 10min\nexecution.checkpointing.max-concurrent-checkpoints: 1\nrestart-strategy: exponential-delay\nrestart-strategy.exponential-delay.initial-backoff: 10s\nrestart-strategy.exponential-delay.max-backoff: 2min\nrestart-strategy.exponential-delay.backoff-multiplier: 2.0\nrestart-strategy.exponential-delay.reset-backoff-threshold: 10min\nrestart-strategy.exponential-delay.jitter-factor: 0.1\nmetrics.reporters: prom\nmetrics.reporter.prom.class: org.apache.flink.metrics.prometheus.PrometheusReporter\nmetrics.reporter.prom.port: 9249-9250
+    volumes:
+      - ./flink-jobs:/opt/flink/jobs
+      - ./flink-checkpoints:/tmp/flink-checkpoints
+      - ./flink-savepoints:/tmp/flink-savepoints
+      - ./flink-lib:/opt/flink/lib
+
+  flink-taskmanager:
+    image: flink:1.17.1-scala_2.12
+    hostname: flink-taskmanager
+    container_name: flink-taskmanager-prod
+    depends_on:
+      - flink-jobmanager
+    command: taskmanager
+    scale: 3
+    environment:
+      - FLINK_PROPERTIES=jobmanager.rpc.address: flink-jobmanager\ntaskmanager.numberOfTaskSlots: 8\ntaskmanager.memory.process.size: 4gb\ntaskmanager.memory.managed.fraction: 0.4\ntaskmanager.memory.task.heap.size: 2gb\ntaskmanager.memory.network.fraction: 0.15\nmetrics.reporters: prom\nmetrics.reporter.prom.class: org.apache.flink.metrics.prometheus.PrometheusReporter\nmetrics.reporter.prom.port: 9249-9250
+    volumes:
+      - ./flink-jobs:/opt/flink/jobs
+      - ./flink-checkpoints:/tmp/flink-checkpoints
+      - ./flink-savepoints:/tmp/flink-savepoints
+      - ./flink-lib:/opt/flink/lib
+
+  # Monitoring Stack
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: prometheus-prod
+    ports:
+      - "9090:9090"
+    command:
+      - '--config.file=/etc/prometheus/prometheus.yml'
+      - '--storage.tsdb.path=/prometheus'
+      - '--web.console.libraries=/etc/prometheus/console_libraries'
+      - '--web.console.templates=/etc/prometheus/consoles'
+      - '--storage.tsdb.retention.time=30d'
+      - '--web.enable-lifecycle'
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./monitoring/alert-rules.yml:/etc/prometheus/alert-rules.yml
+      - prometheus-data:/prometheus
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: grafana-prod
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_SECURITY_ADMIN_USER=admin
+      - GF_SECURITY_ADMIN_PASSWORD=admin
+      - GF_INSTALL_PLUGINS=grafana-piechart-panel
+    volumes:
+      - grafana-data:/var/lib/grafana
+      - ./monitoring/grafana/dashboards:/var/lib/grafana/dashboards
+      - ./monitoring/grafana/provisioning:/etc/grafana/provisioning
+
+  alertmanager:
+    image: prom/alertmanager:latest
+    container_name: alertmanager-prod
+    ports:
+      - "9093:9093"
+    volumes:
+      - ./monitoring/alertmanager.yml:/etc/alertmanager/alertmanager.yml
+      - alertmanager-data:/alertmanager
+
+  # Log Management
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.8.0
+    container_name: elasticsearch-prod
+    ports:
+      - "9200:9200"
+      - "9300:9300"
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms2g -Xmx2g"
+      - bootstrap.memory_lock=true
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    volumes:
+      - es-data:/usr/share/elasticsearch/data
+
+  logstash:
+    image: docker.elastic.co/logstash/logstash:8.8.0
+    container_name: logstash-prod
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5044:5044"
+      - "9600:9600"
+    volumes:
+      - ./monitoring/logstash/pipeline:/usr/share/logstash/pipeline
+      - ./monitoring/logstash/config:/usr/share/logstash/config
+
+  kibana:
+    image: docker.elastic.co/kibana/kibana:8.8.0
+    container_name: kibana-prod
+    depends_on:
+      - elasticsearch
+    ports:
+      - "5601:5601"
+    environment:
+      ELASTICSEARCH_HOSTS: http://elasticsearch:9200
+
+  # JMX Exporters for Kafka
+  kafka-exporter:
+    image: danielqsj/kafka-exporter:latest
+    container_name: kafka-exporter-prod
+    ports:
+      - "9308:9308"
+    command:
+      - '--kafka.server=kafka-1:29092'
+      - '--kafka.server=kafka-2:29093'
+      - '--kafka.server=kafka-3:29094'
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+
+  # Schema Registry
+  schema-registry:
+    image: confluentinc/cp-schema-registry:7.4.0
+    hostname: schema-registry
+    container_name: schema-registry-prod
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    ports:
+      - "8081:8081"
+    environment:
+      SCHEMA_REGISTRY_HOST_NAME: schema-registry
+      SCHEMA_REGISTRY_KAFKASTORE_BOOTSTRAP_SERVERS: 'kafka-1:29092,kafka-2:29093,kafka-3:29094'
+      SCHEMA_REGISTRY_LISTENERS: http://0.0.0.0:8081
+
+  # Kafka Connect
+  kafka-connect:
+    image: confluentinc/cp-kafka-connect:7.4.0
+    hostname: kafka-connect
+    container_name: kafka-connect-prod
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+      - schema-registry
+    ports:
+      - "8083:8083"
+    environment:
+      CONNECT_BOOTSTRAP_SERVERS: 'kafka-1:29092,kafka-2:29093,kafka-3:29094'
+      CONNECT_REST_ADVERTISED_HOST_NAME: connect
+      CONNECT_GROUP_ID: compose-connect-group
+      CONNECT_CONFIG_STORAGE_TOPIC: docker-connect-configs
+      CONNECT_CONFIG_STORAGE_REPLICATION_FACTOR: 3
+      CONNECT_OFFSET_FLUSH_INTERVAL_MS: 10000
+      CONNECT_OFFSET_STORAGE_TOPIC: docker-connect-offsets
+      CONNECT_OFFSET_STORAGE_REPLICATION_FACTOR: 3
+      CONNECT_STATUS_STORAGE_TOPIC: docker-connect-status
+      CONNECT_STATUS_STORAGE_REPLICATION_FACTOR: 3
+      CONNECT_KEY_CONVERTER: org.apache.kafka.connect.storage.StringConverter
+      CONNECT_VALUE_CONVERTER: io.confluent.connect.avro.AvroConverter
+      CONNECT_VALUE_CONVERTER_SCHEMA_REGISTRY_URL: http://schema-registry:8081
+      CONNECT_PLUGIN_PATH: "/usr/share/java,/usr/share/confluent-hub-components"
+
+  # Application Performance Monitoring
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: jaeger-prod
+    ports:
+      - "16686:16686"
+      - "14268:14268"
+    environment:
+      COLLECTOR_OTLP_ENABLED: true
+
+  # Load Testing
+  load-generator:
+    build:
+      context: ./load-testing
+      dockerfile: Dockerfile
+    container_name: load-generator
+    depends_on:
+      - kafka-1
+      - kafka-2
+      - kafka-3
+    environment:
+      KAFKA_BOOTSTRAP_SERVERS: kafka-1:29092,kafka-2:29093,kafka-3:29094
+    volumes:
+      - ./load-testing:/app
+
+volumes:
+  zk1-data:
+  zk1-logs:
+  zk2-data:
+  zk2-logs:
+  zk3-data:
+  zk3-logs:
+  kafka1-data:
+  kafka2-data:
+  kafka3-data:
+  prometheus-data:
+  grafana-data:
+  alertmanager-data:
+  es-data:
